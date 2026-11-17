@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12141f">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<title>GymFlow</title>
+<style>
+:root{--bg:#12141f;--card:#1c1f2e;--card2:#252940;--tx:#f4f1ff;--mu:#9a9ebc;--ok:#3ddc97;--ac:#ff7a45;--r:20px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding-bottom:calc(90px + env(safe-area-inset-bottom))}
+#app{max-width:560px;margin:0 auto;padding:calc(16px + env(safe-area-inset-top)) 16px 16px}
+h1{font-size:30px;margin:4px 0 2px;letter-spacing:-.5px}h2{font-size:20px;margin:22px 0 10px}h3{margin:0;font-size:17px}
+.mu{color:var(--mu);font-size:14px}
+.card{background:var(--card);border-radius:var(--r);padding:16px;margin-bottom:12px}
+.hero{background:linear-gradient(135deg,var(--c1),var(--c2));color:#fff;border-radius:28px;padding:22px;margin:14px 0;position:relative;overflow:hidden}
+.hero .big{font-size:76px;position:absolute;right:14px;top:6px;opacity:.9}
+.hero h1{font-size:34px}
+.btn{border:0;border-radius:16px;padding:14px 20px;font:inherit;font-weight:700;background:#fff;color:#12141f;cursor:pointer;min-height:48px}
+.btn.dark{background:var(--card2);color:var(--tx)}.btn.full{width:100%}.btn.red{background:#3a1d2a;color:#ff7d8f}
+.week{display:flex;justify-content:space-between;gap:6px}
+.dot{flex:1;text-align:center;font-size:12px;color:var(--mu)}
+.dot i{display:grid;place-items:center;width:100%;aspect-ratio:1;border-radius:14px;background:var(--card2);font-style:normal;font-size:18px;margin-bottom:4px}
+.dot.done i{background:var(--ok);color:#06281a}.dot.now i{outline:2px solid var(--tx)}
+.ex{display:flex;gap:12px;align-items:center}
+.ico{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;font-size:28px;flex:none;background:var(--card2)}
+.row{display:grid;grid-template-columns:26px 1fr 1fr 48px;gap:8px;align-items:center;margin-top:8px}
+.row span{color:var(--mu);text-align:center;font-weight:700}
+input,select{width:100%;background:var(--card2);color:var(--tx);border:2px solid transparent;border-radius:12px;padding:12px;font:inherit;font-size:17px;text-align:center;min-height:48px}
+input:focus,select:focus{outline:0;border-color:var(--ac)}
+.ck{height:48px;border-radius:12px;border:0;background:var(--card2);color:var(--mu);font-size:22px}
+.ck.on{background:var(--ok);color:#06281a}
+.lab{display:grid;grid-template-columns:26px 1fr 1fr 48px;gap:8px;font-size:12px;color:var(--mu);text-align:center;margin-top:10px}
+nav{position:fixed;left:0;right:0;bottom:0;background:rgba(18,20,31,.94);backdrop-filter:blur(12px);display:flex;justify-content:space-around;padding:8px 8px calc(8px + env(safe-area-inset-bottom));border-top:1px solid var(--card2)}
+nav button{background:none;border:0;color:var(--mu);font:inherit;font-size:12px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 14px;border-radius:14px;min-width:68px}
+nav button b{font-size:22px;font-weight:400}nav button.on{color:var(--tx);background:var(--card2)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:var(--card);border-radius:var(--r);padding:14px}.stat b{font-size:28px;display:block}
+.tip{background:linear-gradient(135deg,#2a2347,#1c2a47)}
+.pill{display:inline-block;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:700;background:var(--card2);color:var(--mu)}
+.timer{position:fixed;left:16px;right:16px;bottom:calc(84px + env(safe-area-inset-bottom));max-width:528px;margin:auto;background:#fff;color:#12141f;border-radius:18px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;font-weight:700;box-shadow:0 8px 30px #0008}
+.timer button{border:0;background:#12141f;color:#fff;border-radius:10px;padding:8px 14px;font:inherit}
+.toast{position:fixed;top:calc(14px + env(safe-area-inset-top));left:16px;right:16px;max-width:528px;margin:auto;background:var(--ok);color:#06281a;border-radius:16px;padding:14px;font-weight:700;text-align:center;z-index:9}
+.setrow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--card2)}
+svg text{fill:var(--mu);font-size:10px}
+@media (prefers-reduced-motion:no-preference){.hero{animation:in .5s ease}@keyframes in{from{opacity:0;transform:translateY(8px)}}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<nav id="nav"></nav>
+<div id="tm"></div><div id="ts"></div>
+<script>
+// ---------- Données ----------
+const EX={
+dc:["Développé couché","🏋️",4,"6-8","Pectoraux"],di:["Développé incliné haltères","📐",3,"8-10","Haut des pecs"],
+dm:["Développé militaire","🔝",3,"8-10","Épaules"],el:["Élévations latérales","🪽",3,"12-15","Épaules"],
+tp:["Extensions triceps poulie","🔻",3,"10-12","Triceps"],tr:["Tractions","🧗",4,"6-10","Dos"],
+rb:["Rowing barre","🚣",4,"8-10","Dos"],th:["Tirage horizontal","🔙",3,"10-12","Dos"],
+fp:["Face pull","🎯",3,"12-15","Arrière d’épaules"],cb:["Curl barre","💪",3,"10-12","Biceps"],
+sq:["Squat","🦵",4,"6-8","Quadriceps"],pr:["Presse à cuisses","🦿",3,"10-12","Jambes"],
+sd:["Soulevé de terre roumain","🍑",3,"8-10","Ischios, fessiers"],lc:["Leg curl","🦵",3,"10-12","Ischios"],
+mo:["Mollets debout","🦶",4,"12-15","Mollets"],ib:["Développé incliné barre","🏗️",4,"6-8","Pectoraux"],
+rh:["Rowing haltère","🪓",3,"8-10","Dos"],dp:["Dips","⬇️",3,"8-12","Pecs, triceps"],
+tv:["Tirage vertical","🔽",3,"10-12","Dos"],cm:["Curl marteau","🔨",3,"10-12","Biceps"],
+fb:["Fentes bulgares","🤸",3,"8-10","Jambes"],ht:["Hip thrust","🍑",4,"8-12","Fessiers"],
+le:["Leg extension","🦿",3,"12-15","Quadriceps"],gn:["Gainage (secondes)","🧘",3,"45-60","Abdos"],
+cr:["Crunch à la poulie","🔥",3,"12-15","Abdos"]};
+const DAYS0={
+push:{n:"Push",e:"🔥",c1:"#ff7a45",c2:"#ff3d71",d:"Pecs · Épaules · Triceps",ex:["dc","di","dm","el","tp"]},
+pull:{n:"Pull",e:"🧗",c1:"#3d8bff",c2:"#2fd6e8",d:"Dos · Biceps",ex:["tr","rb","th","fp","cb"]},
+legs:{n:"Legs",e:"🦵",c1:"#27c47d",c2:"#a6e22e",d:"Quadriceps · Ischios · Mollets",ex:["sq","pr","sd","lc","mo"]},
+upper:{n:"Haut du corps",e:"💎",c1:"#8a5cff",c2:"#d35cff",d:"Pecs · Dos · Épaules · Bras",ex:["ib","rh","dp","tv","cm"]},
+lower:{n:"Bas du corps + abdos",e:"⚡",c1:"#ff5c9d",c2:"#ffb347",d:"Fessiers · Jambes · Abdos",ex:["fb","ht","le","gn","cr"]}};
+const PLAN0=["push","pull","legs","upper","lower",null,null];
+const JOURS=["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
+const TIPS=["💧 Bois 2 à 3 litres d’eau par jour : même 2 % de déshydratation baissent la force.","🥩 Vise 1,6 à 2,2 g de protéines par kg de poids de corps, réparties sur la journée.","😴 Dors 7 à 9 h : c’est pendant le sommeil que les muscles se construisent.","📈 Surcharge progressive : ajoute 1 rep ou 1 à 2 kg dès que tu fais toutes tes séries propres.","🔥 Échauffe-toi avec 2 séries légères avant ton premier exercice lourd.","⏱️ Repos de 2 à 3 min sur les gros mouvements, 60 à 90 s sur l’isolation.","🎯 Contrôle la descente (2 à 3 s) : c’est là que le muscle travaille le plus.","🧘 5 séances par semaine : prévois 2 vrais jours de repos et étire-toi un peu.","🍌 Un repas avec glucides et protéines 1 à 2 h avant la séance donne de l’énergie.","📝 Note tes charges à chaque séance : ce que tu ne mesures pas, tu ne le progresses pas.","🚶 Marche 7 000 à 10 000 pas par jour pour mieux récupérer.","🛌 Si la fatigue s’accumule 2 semaines de suite, fais une semaine allégée (deload)."];
+const $=s=>document.querySelector(s);
+let S;try{S=JSON.parse(localStorage.getItem("gymflow"))}catch(e){}
+S=S||{logs:[],cur:null,set:{notif:false,time:"18:00",rest:90}};
+S.days=S.days||JSON.parse(JSON.stringify(DAYS0));S.plan=S.plan||PLAN0.slice();S.cx=S.cx||{};
+let DAYS,PLAN;const bind=()=>{DAYS=S.days;PLAN=S.plan;S.cx=S.cx||{};Object.assign(EX,S.cx)};bind();
+const info=k=>DAYS[k]||{n:"Séance libre",e:"🎯",c1:"#8a5cff",c2:"#d35cff",d:"Exercices à la carte",ex:[]};
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const save=()=>{try{localStorage.setItem("gymflow",JSON.stringify(S))}catch(e){}};
+const iso=d=>d.toLocaleDateString("sv");
+const today=()=>iso(new Date());
+const dow=()=>(new Date().getDay()+6)%7;
+const mon=d=>{d=new Date(d);d.setDate(d.getDate()-((d.getDay()+6)%7));d.setHours(0,0,0,0);return d};
+const e1=(k,r)=>k*(1+r/30);
+const vol=l=>Object.values(l.sets).flat().reduce((a,s)=>a+s.kg*s.reps,0);
+let tab="today",tmr=null,pv=null;
+
+// ---------- Utilitaires ----------
+function toast(t){$("#ts").innerHTML=`<div class="toast">${t}</div>`;setTimeout(()=>$("#ts").innerHTML="",3500)}
+function last(id){for(let i=S.logs.length-1;i>=0;i--){const s=S.logs[i].sets[id];if(s&&s.length)return s.reduce((a,b)=>b.kg>=a.kg?b:a)}return null}
+function weekDone(){const m=mon(new Date()),r={};S.logs.forEach(l=>{const d=new Date(l.date+"T12:00");if(d>=m)r[(d.getDay()+6)%7]=1});return r}
+function mk(id){const p=last(id);return Array.from({length:EX[id][2]},()=>({kg:p?p.kg:"",reps:p?p.reps:parseInt(EX[id][3])||10,ok:false}))}
+function start(day,ids){const exs=(ids||DAYS[day].ex).slice(),sets={};exs.forEach(id=>sets[id]=mk(id));
+  S.cur={day:day||"free",exs,date:today(),t0:Date.now(),sets};save();tab="today";pv=null;render();scrollTo(0,0)}
+function addToCur(id){if(!id||S.cur.exs.includes(id))return;S.cur.exs.push(id);S.cur.sets[id]=mk(id);save();render()}
+function tipOfDay(){return TIPS[Math.floor(Date.now()/864e5)%TIPS.length]}
+
+// ---------- Vues ----------
+function vToday(){
+  if(S.cur)return vSession();
+  const k=PLAN[dow()],d=k&&DAYS[k],done=weekDone(),n=Object.keys(done).length;
+  const hello=new Date().getHours()<18?"Bonjour":"Bonsoir";
+  const already=S.logs.some(l=>l.date===today());
+  let h=`<div class="mu">${new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"})}</div><h1>${hello} 👋</h1>`;
+  h+=d?`<div class="hero" style="--c1:${d.c1};--c2:${d.c2}"><div class="big">${d.e}</div><div>Séance du jour</div><h1>${d.n}</h1><p style="margin:0 0 16px;opacity:.9">${d.d}<br>${d.ex.length} exercices · environ 60 min</p><button class="btn" onclick="start('${k}')">${already?"Refaire la séance":"Démarrer la séance"}</button></div>`
+   :`<div class="hero" style="--c1:#3a3f63;--c2:#232844"><div class="big">🛌</div><h1>Jour de repos</h1><p style="margin:0 0 4px;opacity:.9">Tes muscles se reconstruisent aujourd’hui. Dors bien et mange suffisamment.</p></div>`;
+  h+=`<button class="btn dark full" style="margin-bottom:12px" onclick="tab='prog';render()">Autre séance ou exercice seul</button>`;
+  h+=`<div class="card"><div style="display:flex;justify-content:space-between;margin-bottom:12px"><h3>Ma semaine</h3><span class="pill">${n}/5 séances</span></div><div class="week">${JOURS.map((j,i)=>`<div class="dot ${done[i]?"done":""} ${i==dow()?"now":""}"><i>${done[i]?"✓":PLAN[i]?DAYS[PLAN[i]].e:"💤"}</i>${j}</div>`).join("")}</div></div>`;
+  h+=`<div class="card tip"><div class="mu">Conseil du jour</div><p style="margin:6px 0 0;font-size:17px">${tipOfDay()}</p></div>`;
+  return h}
+function vSession(){
+  const c=S.cur,d=info(c.day);c.exs=c.exs||d.ex;
+  let h=`<div class="hero" style="--c1:${d.c1};--c2:${d.c2};padding:16px 22px"><div class="big" style="font-size:54px">${d.e}</div><h1 style="font-size:26px">${d.n}</h1><div style="opacity:.9">Coche chaque série terminée : le repos démarre seul.</div></div>`;
+  c.exs.forEach(id=>{const x=EX[id],p=last(id);
+    h+=`<div class="card"><div class="ex"><div class="ico">${x[1]}</div><div style="flex:1"><h3>${x[0]}</h3><div class="mu">${x[2]} × ${x[3]} · ${x[4]}</div>${p?`<div class="mu">Dernière fois : ${p.kg} kg × ${p.reps}</div>`:""}</div></div>
+    <div class="lab"><span></span><span>kg</span><span>reps</span><span></span></div>
+    ${c.sets[id].map((s,i)=>`<div class="row"><span>${i+1}</span><input inputmode="decimal" placeholder="0" value="${s.kg}" data-e="${id}" data-i="${i}" data-f="kg"><input inputmode="numeric" placeholder="0" value="${s.reps}" data-e="${id}" data-i="${i}" data-f="reps"><button class="ck ${s.ok?"on":""}" data-e="${id}" data-i="${i}">✓</button></div>`).join("")}</div>`});
+  h+=`<select onchange="addToCur(this.value)" style="margin-bottom:10px"><option value="">+ Ajouter un exercice</option>${Object.keys(EX).filter(i=>!c.exs.includes(i)).map(i=>`<option value="${i}">${EX[i][1]} ${esc(EX[i][0])}</option>`).join("")}</select>`;
+  h+=`<button class="btn full" style="background:var(--ok)" onclick="finish()">Terminer la séance 🏁</button><button class="btn full red" style="margin-top:10px" onclick="if(confirm('Abandonner cette séance ?')){S.cur=null;save();render()}">Abandonner</button>`;
+  return h}
+const PAL=[["#ff7a45","#ff3d71"],["#3d8bff","#2fd6e8"],["#27c47d","#a6e22e"],["#8a5cff","#d35cff"],["#ff5c9d","#ffb347"],["#f5b700","#ff7a45"]];
+const sv=()=>{save();render()};
+function newDay(){const id="d"+Date.now(),p=PAL[Object.keys(DAYS).length%PAL.length];DAYS[id]={n:"Nouvelle séance",e:"🏃",c1:p[0],c2:p[1],d:"Séance personnalisée",ex:[]};pv={d:id};sv()}
+function delDay(id){if(!confirm("Supprimer cette séance ?"))return;delete DAYS[id];PLAN=S.plan=S.plan.map(x=>x==id?null:x);pv=null;sv()}
+function setPlan(i,v){PLAN[i]=v||null;save()}
+function dayF(id,f,v){DAYS[id][f]=v;save()}
+function exSet(id,k,v){EX[id][k]=k==2?Math.max(1,+v||3):v;S.cx[id]=EX[id];save()}
+function mv(d,i,x){const a=DAYS[d].ex,j=i+x;if(j<0||j>=a.length)return;[a[i],a[j]]=[a[j],a[i]];sv()}
+function rmEx(d,i){DAYS[d].ex.splice(i,1);sv()}
+function addEx(d,id){if(id){DAYS[d].ex.push(id);sv()}}
+function newEx(go){const n=$("#nn").value.trim();if(!n){toast("Donne un nom à l’exercice");return}
+  const id="x"+Date.now();EX[id]=S.cx[id]=[n,$("#ne").value||"💪",Math.max(1,+$("#ns").value||3),$("#nr").value||"8-12",$("#nm").value||"Perso"];
+  save();if(go)start(null,[id]);else{render();toast("Exercice créé ✓")}}
+function delEx(id){if(!confirm("Supprimer cet exercice ?"))return;delete EX[id];delete S.cx[id];Object.values(DAYS).forEach(d=>d.ex=d.ex.filter(x=>x!=id));sv()}
+const opts=(ex)=>Object.keys(EX).filter(i=>!ex.includes(i)).map(i=>`<option value="${i}">${EX[i][1]} ${esc(EX[i][0])}</option>`).join("");
+function vProg(){
+  if(pv==="lib")return vLib();
+  if(pv&&pv.d)return vEdit(pv.d);
+  let h=`<h1>Mon programme</h1><div class="mu">Crée, modifie et lance tes séances</div><h2>Planning de la semaine</h2><div class="card">${JOURS.map((j,i)=>`<div class="setrow"><b>${j}</b><select style="width:64%" onchange="setPlan(${i},this.value)"><option value="">💤 Repos</option>${Object.entries(DAYS).map(([k,d])=>`<option value="${k}" ${PLAN[i]==k?"selected":""}>${d.e} ${esc(d.n)}</option>`).join("")}</select></div>`).join("")}</div><h2>Mes séances</h2>`;
+  h+=Object.entries(DAYS).map(([k,d])=>`<div class="card" style="border-left:6px solid ${d.c1}"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div><h3>${d.e} ${esc(d.n)}</h3><div class="mu">${d.ex.length} exercices</div></div><div style="display:flex;gap:8px"><button class="btn dark" onclick="pv={d:'${k}'};render()">Modifier</button><button class="btn" style="background:${d.c1};color:#fff" onclick="start('${k}')">Lancer</button></div></div><div style="margin-top:8px">${d.ex.map(id=>`<div class="mu" style="padding:2px 0">${EX[id][1]} ${esc(EX[id][0])} — ${EX[id][2]}×${EX[id][3]}</div>`).join("")}</div></div>`).join("");
+  return h+`<button class="btn full" style="background:var(--ac);color:#fff" onclick="newDay()">+ Nouvelle séance</button><div style="height:10px"></div><button class="btn dark full" onclick="pv='lib';render()">📚 Exercices : lancer un exo seul ou en créer</button>`}
+function vEdit(k){const d=DAYS[k];
+  let h=`<button class="btn dark" onclick="pv=null;render()">← Retour</button><h1 style="margin-top:12px">Modifier la séance</h1><div class="card"><div style="display:grid;grid-template-columns:76px 1fr;gap:8px"><input value="${d.e}" maxlength="8" onchange="dayF('${k}','e',this.value)"><input value="${esc(d.n)}" onchange="dayF('${k}','n',this.value)"></div></div>`;
+  h+=d.ex.map((id,i)=>`<div class="card"><div class="ex"><div class="ico">${EX[id][1]}</div><div style="flex:1"><h3>${esc(EX[id][0])}</h3></div><button class="ck" style="width:44px" onclick="mv('${k}',${i},-1)">↑</button><button class="ck" style="width:44px" onclick="mv('${k}',${i},1)">↓</button><button class="ck" style="width:44px;color:#ff7d8f" onclick="rmEx('${k}',${i})">✕</button></div><div class="lab" style="grid-template-columns:1fr 1fr"><span>Séries</span><span>Répétitions</span></div><div class="row" style="grid-template-columns:1fr 1fr"><input type="number" inputmode="numeric" value="${EX[id][2]}" onchange="exSet('${id}',2,this.value)"><input value="${esc(EX[id][3])}" onchange="exSet('${id}',3,this.value)"></div></div>`).join("");
+  return h+`<select onchange="addEx('${k}',this.value)"><option value="">+ Ajouter un exercice</option>${opts(d.ex)}</select><div style="height:10px"></div><button class="btn dark full" onclick="pv='lib';render()">Créer un nouvel exercice</button><div style="height:10px"></div><button class="btn red full" onclick="delDay('${k}')">Supprimer la séance</button>`}
+function vLib(){
+  let h=`<button class="btn dark" onclick="pv=null;render()">← Retour</button><h1 style="margin-top:12px">Exercices</h1><div class="mu">Lance un exercice seul, ou crée le tien</div><h2>Créer un exercice</h2><div class="card"><div style="display:grid;grid-template-columns:76px 1fr;gap:8px"><input id="ne" placeholder="💪" maxlength="8"><input id="nn" placeholder="Nom (ex : Curl pupitre)"></div><div class="grid" style="margin-top:8px"><input id="ns" type="number" inputmode="numeric" placeholder="Séries" value="3"><input id="nr" placeholder="Reps" value="8-12"></div><input id="nm" placeholder="Muscle ciblé" style="margin-top:8px"><div class="grid" style="margin-top:10px"><button class="btn dark" onclick="newEx(0)">Créer</button><button class="btn" style="background:var(--ok)" onclick="newEx(1)">Créer et lancer</button></div></div><h2>Bibliothèque</h2>`;
+  return h+Object.entries(EX).map(([id,x])=>`<div class="card ex"><div class="ico">${x[1]}</div><div style="flex:1"><h3>${esc(x[0])}</h3><div class="mu">${x[2]}×${x[3]} · ${esc(x[4])}</div></div>${id[0]=="x"?`<button class="ck" style="width:44px;color:#ff7d8f" onclick="delEx('${id}')">🗑</button>`:""}<button class="btn dark" onclick="start(null,['${id}'])">Lancer</button></div>`).join("")}
+function chart(pts,col){
+  if(pts.length<2)return`<div class="mu" style="padding:20px 0;text-align:center">Fais au moins 2 séances pour voir la courbe.</div>`;
+  const W=320,H=120,mx=Math.max(...pts),mn=Math.min(...pts),sp=(mx-mn)||1;
+  const xy=pts.map((v,i)=>[10+i*(W-20)/(pts.length-1),H-16-(v-mn)/sp*(H-36)]);
+  return`<svg viewBox="0 0 ${W} ${H}" width="100%"><path d="${xy.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" ")}" fill="none" stroke="${col}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>${xy.map((p,i)=>`<circle cx="${p[0]}" cy="${p[1]}" r="4" fill="${col}"/>`).join("")}<text x="10" y="12">${Math.round(mx)} kg</text><text x="10" y="${H-2}">${Math.round(mn)} kg</text></svg>`}
+let selEx="dc";
+function vStats(){
+  const L=S.logs,m=mon(new Date());
+  const wk=L.filter(l=>new Date(l.date+"T12:00")>=m).length;
+  const tv=L.reduce((a,l)=>a+vol(l),0);
+  const prs={};L.forEach(l=>Object.entries(l.sets).forEach(([id,ss])=>ss.forEach(s=>{const v=e1(s.kg,s.reps);if(!prs[id]||v>prs[id].v)prs[id]={v,kg:s.kg,reps:s.reps}})));
+  const weeks=[];for(let i=7;i>=0;i--){const a=new Date(m);a.setDate(a.getDate()-i*7);const b=new Date(a);b.setDate(b.getDate()+7);
+    weeks.push(L.filter(l=>{const d=new Date(l.date+"T12:00");return d>=a&&d<b}).length)}
+  const bars=`<svg viewBox="0 0 320 110" width="100%">${weeks.map((n,i)=>{const h=n/5*70;return`<rect x="${14+i*38}" y="${85-h}" width="26" height="${Math.max(h,3)}" rx="7" fill="${n>=5?"#3ddc97":n?"#8a5cff":"#252940"}"/><text x="${27+i*38}" y="${80-h}" text-anchor="middle">${n||""}</text><text x="${27+i*38}" y="102" text-anchor="middle">${i==7?"Auj.":"S-"+(7-i)}</text>`}).join("")}</svg>`;
+  const ids=Object.keys(prs);if(ids.length&&!prs[selEx])selEx=ids[0];
+  const pts=L.filter(l=>l.sets[selEx]).map(l=>Math.max(...l.sets[selEx].map(s=>e1(s.kg,s.reps))));
+  let h=`<h1>Tableau de bord</h1><div class="grid" style="margin-top:12px"><div class="stat"><span class="mu">Cette semaine</span><b>${wk}/5</b></div><div class="stat"><span class="mu">Séances au total</span><b>${L.length}</b></div><div class="stat"><span class="mu">Volume soulevé</span><b>${(tv/1000).toFixed(1)} t</b></div><div class="stat"><span class="mu">Records</span><b>${ids.length}</b></div></div>`;
+  h+=`<h2>Régularité (8 semaines)</h2><div class="card">${bars}<div class="mu">Vert = objectif de 5 séances atteint</div></div>`;
+  if(ids.length){
+    h+=`<h2>Progression de force</h2><div class="card"><select onchange="selEx=this.value;render()">${ids.map(i=>`<option value="${i}" ${i==selEx?"selected":""}>${EX[i][1]} ${EX[i][0]}</option>`).join("")}</select>${chart(pts,"#ff7a45")}<div class="mu">Force estimée (1RM) par séance</div></div>`;
+    h+=`<h2>Mes records</h2>`+ids.map(i=>`<div class="card ex"><div class="ico">${EX[i][1]}</div><div style="flex:1"><h3>${EX[i][0]}</h3><div class="mu">Meilleure série : ${prs[i].kg} kg × ${prs[i].reps}</div></div><span class="pill">1RM ≈ ${Math.round(prs[i].v)} kg</span></div>`).join("");
+    h+=`<h2>Dernières séances</h2>`+L.slice(-5).reverse().map(l=>{const d=info(l.day);return`<div class="card ex"><div class="ico" style="background:${d.c1}">${d.e}</div><div style="flex:1"><h3>${d.n}</h3><div class="mu">${new Date(l.date+"T12:00").toLocaleDateString("fr-FR",{weekday:"short",day:"numeric",month:"short"})} · ${l.min} min</div></div><span class="pill">${(vol(l)/1000).toFixed(1)} t</span></div>`}).join("")}
+  else h+=`<div class="card" style="text-align:center;padding:30px"><div style="font-size:48px">📊</div><h3>Pas encore de données</h3><p class="mu">Termine ta première séance et tes graphiques apparaîtront ici.</p></div>`;
+  return h}
+function vSet(){const s=S.set,p="Notification"in window?Notification.permission:"non";
+  return`<h1>Réglages</h1><div class="card"><h3>Notifications</h3>
+  <div class="setrow"><span>Rappel de séance + conseil</span><button class="btn dark" onclick="toggleNotif()">${s.notif&&p=="granted"?"Activé ✓":"Activer"}</button></div>
+  <div class="setrow"><span>Heure du rappel</span><input type="time" value="${s.time}" style="width:130px" onchange="S.set.time=this.value;save()"></div>
+  <div class="setrow"><span>Repos entre séries (s)</span><input type="number" value="${s.rest}" style="width:100px" onchange="S.set.rest=+this.value||90;save()"></div>
+  <button class="btn dark full" style="margin-top:12px" onclick="notify('GymFlow','${tipOfDay().replace(/'/g,"’")}')">Tester une notification</button>
+  <p class="mu">Le rappel s’affiche à l’ouverture de l’app après l’heure choisie, et en arrière-plan sur Android si Chrome l’autorise.</p></div>
+  <div class="card"><h3>Mes données</h3><p class="mu">Tout reste sur ton téléphone, sans compte, sans pub.</p>
+  <button class="btn dark full" onclick="exportD()">Sauvegarder (fichier)</button><div style="height:8px"></div>
+  <button class="btn dark full" onclick="$('#imp').click()">Restaurer une sauvegarde</button><input id="imp" type="file" accept=".json" hidden onchange="importD(this.files[0])"><div style="height:8px"></div>
+  <button class="btn red full" onclick="if(confirm('Tout effacer ?')){S.logs=[];S.cur=null;save();render()}">Effacer mes données</button></div>`}
+
+// ---------- Actions ----------
+function finish(){
+  const c=S.cur,sets={};let n=0;
+  Object.entries(c.sets).forEach(([id,ss])=>{const ok=ss.filter(s=>s.ok&&+s.kg>=0&&+s.reps>0).map(s=>({kg:+s.kg||0,reps:+s.reps}));if(ok.length){sets[id]=ok;n+=ok.length}});
+  if(!n){alert("Coche au moins une série terminée.");return}
+  const prev={};S.logs.forEach(l=>Object.entries(l.sets).forEach(([id,ss])=>ss.forEach(s=>prev[id]=Math.max(prev[id]||0,e1(s.kg,s.reps)))));
+  const recs=Object.entries(sets).filter(([id,ss])=>prev[id]&&Math.max(...ss.map(s=>e1(s.kg,s.reps)))>prev[id]).map(([id])=>EX[id][0]);
+  S.logs.push({date:c.date,day:c.day,sets,min:Math.round((Date.now()-c.t0)/6e4)});S.cur=null;save();stopT();
+  toast(recs.length?`🏆 Nouveau record : ${recs[0]}`:"Séance enregistrée, bravo 💪");tab="stats";render();scrollTo(0,0)}
+function startT(){stopT();let t=S.set.rest;const f=()=>{$("#tm").innerHTML=`<div class="timer"><span>⏱️ Repos ${Math.floor(t/60)}:${String(t%60).padStart(2,"0")}</span><button onclick="stopT()">Passer</button></div>`};f();
+  tmr=setInterval(()=>{t--;if(t<=0){stopT();navigator.vibrate&&navigator.vibrate([300,100,300]);toast("C’est reparti, série suivante ! 🔥")}else f()},1000)}
+function stopT(){clearInterval(tmr);$("#tm").innerHTML=""}
+async function notify(t,b){try{const r=await navigator.serviceWorker.ready;r.showNotification(t,{body:b,icon:"icon-192.png",badge:"icon-192.png",tag:"gymflow"})}catch(e){toast("Notifications indisponibles ici")}}
+async function toggleNotif(){
+  if(!("Notification"in window)){toast("Non pris en charge");return}
+  if(Notification.permission!=="granted"&&await Notification.requestPermission()!=="granted"){toast("Autorise les notifications dans Chrome");return}
+  S.set.notif=true;save();
+  try{const r=await navigator.serviceWorker.ready;if(r.periodicSync)await r.periodicSync.register("tip",{minInterval:864e5})}catch(e){}
+  toast("Notifications activées ✓");render()}
+function remind(){
+  const s=S.set,k=PLAN[dow()],n=new Date(),[h,m]=s.time.split(":");
+  if(!s.notif||Notification.permission!=="granted"||!k||S.logs.some(l=>l.date===today())||localStorage.rem===today())return;
+  if(n.getHours()*60+n.getMinutes()>=h*60+ +m){localStorage.rem=today();notify(`${DAYS[k].e} Séance ${DAYS[k].n} aujourd’hui`,tipOfDay())}}
+function exportD(){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(S)],{type:"application/json"}));a.download="gymflow-"+today()+".json";a.click()}
+function importD(f){if(!f)return;f.text().then(t=>{try{const d=JSON.parse(t);if(!Array.isArray(d.logs))throw 0;S=d;S.days=S.days||JSON.parse(JSON.stringify(DAYS0));S.plan=S.plan||PLAN0.slice();bind();save();render();toast("Données restaurées ✓")}catch(e){alert("Fichier invalide")}})}
+
+// ---------- Rendu ----------
+const TABS=[["today","🏠","Aujourd’hui"],["prog","📋","Programme"],["stats","📊","Stats"],["set","⚙️","Réglages"]];
+function render(){
+  $("#app").innerHTML={today:vToday,prog:vProg,stats:vStats,set:vSet}[tab]();
+  $("#nav").innerHTML=TABS.map(t=>`<button class="${t[0]==tab?"on":""}" onclick="tab='${t[0]}';pv=null;render();scrollTo(0,0)"><b>${t[1]}</b>${t[2]}</button>`).join("")}
+$("#app").addEventListener("input",e=>{const t=e.target;if(t.dataset.f&&S.cur){S.cur.sets[t.dataset.e][t.dataset.i][t.dataset.f]=t.value;save()}});
+$("#app").addEventListener("click",e=>{const b=e.target.closest(".ck");if(!b||!S.cur)return;
+  const s=S.cur.sets[b.dataset.e][b.dataset.i];s.ok=!s.ok;b.classList.toggle("on",s.ok);save();s.ok?startT():stopT()});
+if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+render();remind();
+</script>
+</body>
+</html>
